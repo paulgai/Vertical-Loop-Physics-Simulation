@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="el" data-bs-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Διαδραστική εκπαιδευτική εφαρμογή για τη μελέτη της ανακύκλωσης στη Φυσική."
+    />
+    <title>Προσομοίωση Ανακύκλωσης</title>
+
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <div class="app-shell">
+      <aside
+        id="settings-panel"
+        class="settings-panel"
+        aria-labelledby="settings-title"
+      >
+        <header class="panel-header">
+          <h1 id="settings-title">Προσομοίωση Ανακύκλωσης</h1>
+        </header>
+
+        <div class="settings-content">
+          <div class="field-group">
+            <label for="loop-type" class="form-label">Διάταξη</label>
+            <select id="loop-type" class="form-select">
+              <option value="string" selected>Νήμα</option>
+              <option value="circular-guide">Κυκλικός οδηγός</option>
+              <option value="rod">Ράβδος</option>
+            </select>
+          </div>
+
+          <section class="parameter-section" aria-labelledby="parameters-title">
+            <h2 id="parameters-title" class="visually-hidden">
+              Παράμετροι προσομοίωσης
+            </h2>
+            <div class="accordion parameter-accordion" id="parameters-accordion">
+              <div class="accordion-item">
+                <h3 class="accordion-header">
+                  <button
+                    class="accordion-button"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#parameters-collapse"
+                    aria-expanded="true"
+                    aria-controls="parameters-collapse"
+                  >
+                    Παράμετροι
+                  </button>
+                </h3>
+                <div
+                  id="parameters-collapse"
+                  class="accordion-collapse collapse show"
+                >
+                  <div class="accordion-body">
+                    <div class="parameter-control">
+                      <div class="parameter-heading">
+                        <label for="radius-range"><i>R</i></label>
+                        <div class="number-field">
+                          <input
+                            id="radius-number"
+                            type="number"
+                            min="1"
+                            step="any"
+                            value="5.0"
+                            inputmode="decimal"
+                            aria-label="Ακτίνα R"
+                          />
+                          <span>m</span>
+                        </div>
+                      </div>
+                      <input
+                        id="radius-range"
+                        class="form-range"
+                        type="range"
+                        min="1"
+                        max="10"
+                        step="0.1"
+                        value="5.0"
+                        data-pair="radius-number"
+                        data-domain="minimum-bounded"
+                      />
+                      <div class="range-limits" aria-hidden="true">
+                        <span>1</span><span>10</span>
+                      </div>
+                    </div>
+
+                    <div class="parameter-control">
+                      <div class="parameter-heading">
+                        <label for="mass-range"><i>m</i></label>
+                        <div class="number-field">
+                          <input
+                            id="mass-number"
+                            type="number"
+                            min="0.1"
+                            max="10"
+                            step="0.1"
+                            value="1.0"
+                            inputmode="decimal"
+                            aria-label="Μάζα σώματος m"
+                          />
+                          <span>kg</span>
+                        </div>
+                      </div>
+                      <input
+                        id="mass-range"
+                        class="form-range"
+                        type="range"
+                        min="0.1"
+                        max="10"
+                        step="0.1"
+                        value="1.0"
+                        data-pair="mass-number"
+                        data-domain="bounded"
+                      />
+                      <div class="range-limits" aria-hidden="true">
+                        <span>0,1</span><span>10</span>
+                      </div>
+                    </div>
+
+                    <div class="parameter-control">
+                      <div class="parameter-heading">
+                        <label for="gravity-range"><i>g</i></label>
+                        <div class="number-field">
+                          <input
+                            id="gravity-number"
+                            type="number"
+                            min="0.1"
+                            max="20"
+                            step="0.01"
+                            value="9.81"
+                            inputmode="decimal"
+                            aria-label="Επιτάχυνση βαρύτητας g"
+                          />
+                          <span>m/s²</span>
+                        </div>
+                      </div>
+                      <input
+                        id="gravity-range"
+                        class="form-range"
+                        type="range"
+                        min="0.1"
+                        max="20"
+                        step="0.01"
+                        value="9.81"
+                        data-pair="gravity-number"
+                        data-domain="bounded"
+                      />
+                      <div class="range-limits" aria-hidden="true">
+                        <span>0,1</span><span>20</span>
+                      </div>
+                    </div>
+
+                    <div id="angle-parameter-control" class="parameter-control">
+                      <div class="parameter-heading">
+                        <label for="angle-range">φ<sub>0</sub></label>
+                        <div class="number-field">
+                          <input
+                            id="angle-number"
+                            type="number"
+                            min="0"
+                            max="180"
+                            step="1"
+                            value="0"
+                            inputmode="numeric"
+                            aria-label="Αρχική γωνία φ0"
+                          />
+                          <span>°</span>
+                        </div>
+                      </div>
+                      <input
+                        id="angle-range"
+                        class="form-range"
+                        type="range"
+                        min="0"
+                        max="180"
+                        step="1"
+                        value="0"
+                        data-pair="angle-number"
+                        data-domain="bounded"
+                      />
+                      <div class="range-limits" aria-hidden="true">
+                        <span>0°</span><span>180°</span>
+                      </div>
+                    </div>
+
+                    <div class="parameter-control">
+                      <div class="parameter-heading">
+                        <label for="speed-range"><i>u</i><sub>0</sub></label>
+                        <div class="number-field">
+                          <input
+                            id="speed-number"
+                            type="number"
+                            min="0"
+                            step="any"
+                            value="5.0"
+                            inputmode="decimal"
+                            aria-label="Αρχική ταχύτητα u0"
+                          />
+                          <span>m/s</span>
+                        </div>
+                      </div>
+                      <input
+                        id="speed-range"
+                        class="form-range"
+                        type="range"
+                        min="0"
+                        max="20"
+                        step="0.1"
+                        value="5.0"
+                        data-pair="speed-number"
+                        data-domain="nonnegative-unbounded"
+                      />
+                      <div class="range-limits" aria-hidden="true">
+                        <span>0</span><span>20</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="display-settings" class="accordion-item">
+                <h3 class="accordion-header">
+                  <button
+                    class="accordion-button"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#display-collapse"
+                    aria-expanded="true"
+                    aria-controls="display-collapse"
+                  >
+                    Εμφάνιση
+                  </button>
+                </h3>
+                <div
+                  id="display-collapse"
+                  class="accordion-collapse collapse show"
+                >
+                  <div class="accordion-body display-options">
+                    <label class="display-option" for="geometric-features">
+                      <input id="geometric-features" type="checkbox" />
+                      <span>Γεωμετρικά χαρακτηριστικά</span>
+                    </label>
+                    <label class="display-option" for="vector-features">
+                      <input id="vector-features" type="checkbox" />
+                      <span>Διανύσματα</span>
+                    </label>
+                    <label class="display-option" for="motion-trail">
+                      <input id="motion-trail" type="checkbox" />
+                      <span>Ίχνος</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </aside>
+
+      <button
+        id="settings-panel-toggle"
+        class="side-panel-toggle settings-panel-toggle"
+        type="button"
+        aria-controls="settings-panel"
+        aria-expanded="true"
+        title="Απόκρυψη ρυθμίσεων"
+      >
+        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+        <span class="visually-hidden">Απόκρυψη ρυθμίσεων</span>
+      </button>
+
+      <main class="simulation-area">
+        <div class="top-actions">
+          <div
+            class="theme-switcher"
+            role="group"
+            aria-label="Εργαλεία προβολής"
+          >
+            <button
+              class="theme-button active"
+              type="button"
+              data-theme="light"
+              aria-label="Φωτεινό θέμα"
+              aria-pressed="true"
+              title="Φωτεινό θέμα"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="3.5"></circle>
+                <path
+                  d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"
+                ></path>
+              </svg>
+            </button>
+            <button
+              class="theme-button"
+              type="button"
+              data-theme="dark"
+              aria-label="Σκοτεινό θέμα"
+              aria-pressed="false"
+              title="Σκοτεινό θέμα"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M20.5 15.1A8.8 8.8 0 0 1 8.9 3.5 8.8 8.8 0 1 0 20.5 15.1Z"
+                ></path>
+              </svg>
+            </button>
+            <button
+              id="toggle-fullscreen"
+              class="theme-button view-action-button toolbar-divider"
+              type="button"
+              aria-label="Πλήρης οθόνη"
+              aria-pressed="false"
+              title="Πλήρης οθόνη"
+            >
+              <i class="bi bi-fullscreen" aria-hidden="true"></i>
+            </button>
+            <button
+              id="zoom-in"
+              class="theme-button view-action-button"
+              type="button"
+              aria-label="Μεγέθυνση"
+              title="Μεγέθυνση"
+            >
+              <i class="bi bi-zoom-in" aria-hidden="true"></i>
+            </button>
+            <button
+              id="zoom-out"
+              class="theme-button view-action-button"
+              type="button"
+              aria-label="Σμίκρυνση"
+              title="Σμίκρυνση"
+            >
+              <i class="bi bi-zoom-out" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <section class="workspace" aria-label="Προσομοίωση ανακύκλωσης">
+          <div
+            id="simulation-viewport"
+            class="simulation-viewport"
+            tabindex="0"
+            aria-label="Χώρος προσομοίωσης. Χρησιμοποιήστε τη ρόδα ή δύο δάχτυλα για μεγέθυνση και σύρετε για μετακίνηση."
+          >
+            <div id="simulation-world" class="simulation-world" aria-hidden="true">
+              <div id="string-system" class="string-system">
+                <svg
+                  id="circular-guide-layer"
+                  class="circular-guide-layer"
+                  viewBox="0 0 1200 600"
+                  preserveAspectRatio="none"
+                  hidden
+                >
+                  <defs>
+                    <linearGradient
+                      id="guide-surface-gradient"
+                      gradientUnits="userSpaceOnUse"
+                    >
+                      <stop offset="0%" class="guide-gradient-back"></stop>
+                      <stop offset="42%" class="guide-gradient-middle"></stop>
+                      <stop offset="58%" class="guide-gradient-middle"></stop>
+                      <stop offset="100%" class="guide-gradient-front"></stop>
+                    </linearGradient>
+                  </defs>
+                  <g class="guide-track-back">
+                    <path id="guide-back-bed" class="guide-track-bed"></path>
+                    <path id="guide-back-surface" class="guide-track-surface"></path>
+                  </g>
+                  <g class="guide-track-front">
+                    <path id="guide-front-bed" class="guide-track-bed"></path>
+                    <path id="guide-front-surface" class="guide-track-surface"></path>
+                  </g>
+                </svg>
+
+                <svg
+                  id="string-geometry-layer"
+                  class="string-geometry-layer"
+                  viewBox="0 0 1200 600"
+                  preserveAspectRatio="none"
+                  hidden
+                >
+                  <circle id="circular-reference"></circle>
+                  <line id="vertical-reference"></line>
+                  <line id="initial-radius-reference" hidden></line>
+                  <line id="current-radius-reference" hidden></line>
+                  <line id="zero-height-reference" class="height-reference"></line>
+                  <line id="body-height-reference" class="height-reference body-height-reference"></line>
+                  <line id="height-dimension" class="geometry-dimension"></line>
+                  <line id="height-dimension-cap-zero" class="geometry-dimension-cap"></line>
+                  <line id="height-dimension-cap-body" class="geometry-dimension-cap"></line>
+                  <path id="initial-angle-arc" class="geometry-angle-arc initial-angle-arc"></path>
+                  <polygon id="initial-angle-head" class="geometry-angle-head"></polygon>
+                  <path id="current-angle-arc" class="geometry-angle-arc current-angle-arc"></path>
+                  <polygon id="current-angle-head" class="geometry-angle-head"></polygon>
+                </svg>
+
+                <svg
+                  id="motion-trail-layer"
+                  class="motion-trail-layer"
+                  viewBox="0 0 1200 600"
+                  preserveAspectRatio="none"
+                  hidden
+                >
+                  <path id="motion-trail-glow" class="motion-trail-glow"></path>
+                  <path id="motion-trail-path" class="motion-trail-path"></path>
+                </svg>
+
+                <div id="simulation-string" class="simulation-string"></div>
+
+                <svg
+                  id="slack-string-layer"
+                  class="slack-string-layer"
+                  viewBox="0 0 1200 600"
+                  preserveAspectRatio="none"
+                  hidden
+                >
+                  <path id="slack-string-outline" class="slack-string-outline"></path>
+                  <path id="slack-string" class="slack-string"></path>
+                </svg>
+
+                <svg
+                  class="string-body-layer"
+                  viewBox="0 0 1200 600"
+                  preserveAspectRatio="none"
+                >
+                  <circle id="string-body" class="string-body"></circle>
+                </svg>
+
+                <svg
+                  id="geometry-points-layer"
+                  class="geometry-points-layer"
+                  viewBox="0 0 1200 600"
+                  preserveAspectRatio="none"
+                  hidden
+                >
+                  <circle id="point-a" class="geometry-point"></circle>
+                  <circle id="point-b" class="geometry-point"></circle>
+                  <circle id="point-gamma" class="geometry-point"></circle>
+                </svg>
+
+                <span id="fixed-point" class="fixed-point"></span>
+                <span id="fixed-point-label" class="fixed-point-label">O</span>
+
+                <svg
+                  id="velocity-vector-layer"
+                  class="vectors-layer"
+                  viewBox="0 0 1200 600"
+                  preserveAspectRatio="none"
+                  hidden
+                >
+                  <line
+                    id="vector-u0"
+                    class="velocity-vector vector-u0"
+                  ></line>
+                  <polygon
+                    id="vector-u0-head"
+                    class="velocity-vector-head vector-u0-head"
+                  ></polygon>
+                  <line id="vector-weight" class="force-vector vector-weight"></line>
+                  <polygon id="vector-weight-head" class="force-vector-head vector-weight-head"></polygon>
+                  <line id="component-weight-x" class="force-component component-weight-x"></line>
+                  <polygon id="component-weight-x-head" class="force-component-head component-weight-head"></polygon>
+                  <line id="component-weight-y" class="force-component component-weight-y"></line>
+                  <polygon id="component-weight-y-head" class="force-component-head component-weight-head"></polygon>
+                  <line id="projection-weight-from-x" class="force-projection"></line>
+                  <line id="projection-weight-from-y" class="force-projection"></line>
+                  <line id="vector-tension" class="tension-vector"></line>
+                  <polygon id="vector-tension-head" class="tension-vector-head"></polygon>
+                </svg>
+                <div id="vector-u0-label" class="vector-label vector-label-u0"></div>
+                <div id="mass-label" class="mass-label"></div>
+                <div id="zero-height-label" class="geometry-label"></div>
+                <div id="height-label" class="geometry-label"></div>
+                <div id="initial-angle-label" class="geometry-label"></div>
+                <div id="current-angle-label" class="geometry-label"></div>
+                <div id="point-a-label" class="geometry-label geometry-point-label"></div>
+                <div id="point-b-label" class="geometry-label geometry-point-label"></div>
+                <div id="point-gamma-label" class="geometry-label geometry-point-label"></div>
+                <div id="weight-label" class="vector-label vector-label-weight"></div>
+                <div id="weight-x-label" class="vector-label vector-label-weight-component"></div>
+                <div id="weight-y-label" class="vector-label vector-label-weight-component"></div>
+                <div id="tension-label" class="vector-label vector-label-tension"></div>
+              </div>
+            </div>
+
+            <button
+              id="reset-view"
+              class="reset-view"
+              type="button"
+              title="Επαναφορά προβολής"
+              aria-label="Επαναφορά προβολής"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 12a8 8 0 1 0 2.34-5.66L4 8.68M4 4v4.68h4.68"></path>
+              </svg>
+            </button>
+
+            <button
+              id="show-physics-info"
+              class="reset-view info-button"
+              type="button"
+              title="Φυσικές παραδοχές"
+              aria-label="Προβολή φυσικών παραδοχών"
+              aria-haspopup="dialog"
+              aria-controls="physics-info-dialog"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 10.5v6M12 7.5h.01"></path>
+              </svg>
+            </button>
+
+            <div
+              class="simulation-controls"
+              role="group"
+              aria-label="Χειρισμός προσομοίωσης"
+            >
+              <button
+                id="restart-simulation"
+                class="simulation-button"
+                type="button"
+                title="Επανεκκίνηση"
+                aria-label="Επανεκκίνηση προσομοίωσης"
+              >
+                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+              </button>
+              <button
+                id="step-backward"
+                class="simulation-button"
+                type="button"
+                title="Ένα καρέ πίσω"
+                aria-label="Ένα καρέ πίσω"
+              >
+                <i class="bi bi-skip-backward-fill" aria-hidden="true"></i>
+              </button>
+              <button
+                id="play-simulation"
+                class="simulation-button primary"
+                type="button"
+                title="Έναρξη"
+                aria-label="Έναρξη προσομοίωσης"
+              >
+                <i class="bi bi-play-fill" aria-hidden="true"></i>
+              </button>
+              <button
+                id="pause-simulation"
+                class="simulation-button"
+                type="button"
+                title="Παύση"
+                aria-label="Παύση προσομοίωσης"
+                disabled
+              >
+                <i class="bi bi-pause-fill" aria-hidden="true"></i>
+              </button>
+              <button
+                id="step-forward"
+                class="simulation-button"
+                type="button"
+                title="Ένα καρέ μπροστά"
+                aria-label="Ένα καρέ μπροστά"
+              >
+                <i class="bi bi-skip-forward-fill" aria-hidden="true"></i>
+              </button>
+            </div>
+
+            <div class="copyright-notice">
+              Developed by Pavlos Gaintatzis · © 2026
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <button
+        id="results-panel-toggle"
+        class="side-panel-toggle results-panel-toggle"
+        type="button"
+        aria-controls="results-panel"
+        aria-expanded="true"
+        title="Απόκρυψη αποτελεσμάτων"
+      >
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+        <span class="visually-hidden">Απόκρυψη αποτελεσμάτων</span>
+      </button>
+
+      <aside id="results-panel" class="results-panel" aria-live="polite">
+        <p class="results-heading">Χρόνος</p>
+        <div class="results-grid">
+          <span><i>t</i></span><span>=</span><strong id="result-time">0,00 s</strong>
+        </div>
+        <p class="results-heading results-subheading">Κινηματικά μεγέθη</p>
+        <div class="results-grid">
+          <span id="result-symbol-angle"><i>φ</i></span><span>=</span><strong id="result-angle">0,0°</strong>
+          <span id="result-symbol-h"><i>h</i></span><span>=</span><strong id="result-h">0,00 m</strong>
+          <span id="result-symbol-h-max"><i>h</i><sub>max</sub></span><span>=</span><strong id="result-h-max">0,00 m</strong>
+          <span id="result-symbol-speed"><i>v</i></span><span>=</span><strong id="result-speed">0,00 m/s</strong>
+        </div>
+        <p class="results-heading results-subheading">Δυνάμεις</p>
+        <div class="results-grid">
+          <span id="result-symbol-tension"><i>T</i></span><span>=</span><strong id="result-tension">0,00 N</strong>
+          <span id="result-symbol-weight"><i>W</i></span><span>=</span><strong id="result-weight">0,00 N</strong>
+          <span id="result-symbol-weight-y"><i>W</i><sub>y</sub></span><span>=</span><strong id="result-weight-y">0,00 N</strong>
+          <span id="result-symbol-weight-x"><i>W</i><sub>x</sub></span><span>=</span><strong id="result-weight-x">0,00 N</strong>
+        </div>
+        <p class="results-heading results-subheading">Ενέργειες</p>
+        <div class="results-grid">
+          <span id="result-symbol-kinetic-energy"><i>K</i></span><span>=</span><strong id="result-kinetic-energy">0,00 J</strong>
+          <span id="result-symbol-potential-energy"><i>U</i></span><span>=</span><strong id="result-potential-energy">0,00 J</strong>
+          <span id="result-symbol-mechanical-energy"><i>E</i></span><span>=</span><strong id="result-mechanical-energy">0,00 J</strong>
+        </div>
+      </aside>
+    </div>
+
+    <dialog
+      id="physics-info-dialog"
+      class="physics-info-dialog"
+      aria-labelledby="physics-info-title"
+    >
+      <div class="physics-info-card">
+        <header class="physics-info-header">
+          <div>
+            <p class="physics-info-eyebrow">Πληροφορίες μοντέλου</p>
+            <h2 id="physics-info-title">Φυσικές παραδοχές</h2>
+          </div>
+          <button
+            id="close-physics-info"
+            class="physics-info-close"
+            type="button"
+            title="Κλείσιμο"
+            aria-label="Κλείσιμο πληροφοριών"
+          >
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+          </button>
+        </header>
+
+        <div class="physics-info-content">
+          <section>
+            <h3>Γενικές παραδοχές</h3>
+            <ul>
+              <li>Η κίνηση γίνεται σε κατακόρυφο επίπεδο.</li>
+              <li>Δεν υπάρχουν τριβές ούτε αντίσταση του αέρα.</li>
+              <li>Το σώμα θεωρείται υλικό σημείο και δεν περιστρέφεται.</li>
+              <li>Το πεδίο βαρύτητας είναι ομογενές.</li>
+              <li>Η δυναμική ενέργεια θεωρείται μηδενική στο κατώτερο σημείο Α.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>Νήμα</h3>
+            <ul>
+              <li>Το νήμα είναι αβαρές, μη εκτατό, απόλυτα εύκαμπτο και αρχικά τεντωμένο.</li>
+              <li>Ασκεί μόνο τάση. Όταν η τάση μηδενιστεί, το νήμα χαλαρώνει και το σώμα εκτελεί βολή.</li>
+              <li>Κατά την επανατάνυση του νήματος θεωρούμε τελείως ανελαστική κρούση κατά τη διεύθυνσή του. Η παράλληλη στο νήμα συνιστώσα της ταχύτητας μηδενίζεται, ενώ η κάθετη διατηρείται.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>Κυκλικός οδηγός</h3>
+            <ul>
+              <li>Ο οδηγός είναι ακλόνητος και λείος, οπότε ασκεί μόνο κάθετη αντίδραση.</li>
+              <li>Όταν η κάθετη αντίδραση μηδενιστεί, το σώμα αποχωρίζεται τον οδηγό και εκτελεί βολή.</li>
+              <li>Κατά την πρόσκρουση στον οδηγό θεωρούμε τελείως ανελαστική κρούση στην κάθετη προς αυτόν διεύθυνση. Η κάθετη συνιστώσα της ταχύτητας μηδενίζεται, ενώ η εφαπτομενική διατηρείται. Στην αρχική ομαλή είσοδο δεν υπάρχει απώλεια.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>Ράβδος</h3>
+            <ul>
+              <li>Η ράβδος είναι αβαρής, άκαμπτη και έχει σταθερό μήκος.</li>
+              <li>Μπορεί να ασκεί ελκτική ή θλιπτική δύναμη.</li>
+              <li>Η τροχιά παραμένει πάντοτε κυκλική, ακόμη και όταν η ταχύτητα μηδενιστεί.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </dialog>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
