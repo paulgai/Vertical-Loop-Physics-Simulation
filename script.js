@@ -28,6 +28,7 @@ const initialRadiusReference = document.querySelector("#initial-radius-reference
 const currentRadiusReference = document.querySelector("#current-radius-reference");
 const zeroHeightReference = document.querySelector("#zero-height-reference");
 const bodyHeightReference = document.querySelector("#body-height-reference");
+const maximumHeightReference = document.querySelector("#maximum-height-reference");
 const heightDimension = document.querySelector("#height-dimension");
 const heightDimensionCapZero = document.querySelector("#height-dimension-cap-zero");
 const heightDimensionCapBody = document.querySelector("#height-dimension-cap-body");
@@ -38,7 +39,7 @@ const currentAngleHead = document.querySelector("#current-angle-head");
 const geometryPointsLayer = document.querySelector("#geometry-points-layer");
 const pointA = document.querySelector("#point-a");
 const pointB = document.querySelector("#point-b");
-const pointGamma = document.querySelector("#point-gamma");
+const pointHMax = document.querySelector("#point-h-max");
 const velocityVectorLayer = document.querySelector("#velocity-vector-layer");
 const velocityVector = document.querySelector("#vector-u0");
 const velocityVectorHead = document.querySelector("#vector-u0-head");
@@ -60,7 +61,7 @@ const initialAngleLabel = document.querySelector("#initial-angle-label");
 const currentAngleLabel = document.querySelector("#current-angle-label");
 const pointALabel = document.querySelector("#point-a-label");
 const pointBLabel = document.querySelector("#point-b-label");
-const pointGammaLabel = document.querySelector("#point-gamma-label");
+const maximumHeightLabel = document.querySelector("#maximum-height-label");
 const weightLabel = document.querySelector("#weight-label");
 const weightXLabel = document.querySelector("#weight-x-label");
 const weightYLabel = document.querySelector("#weight-y-label");
@@ -227,7 +228,6 @@ function renderStaticLatex() {
     ["#current-angle-label", "\\varphi"],
     ["#point-a-label", "A"],
     ["#point-b-label", "B"],
-    ["#point-gamma-label", "H_{\\max}"],
     ["#weight-label", "\\vec{w}"],
     ["#weight-x-label", "\\vec{w}_x"],
     ["#weight-y-label", "\\vec{w}_y"],
@@ -394,6 +394,55 @@ function findFirstMaximumState(samples) {
     (maximum, sample) => (sample.y > maximum.y ? sample : maximum),
     samples[0],
   );
+}
+
+function findFirstZeroTensionState(
+  samples,
+  radius,
+  gravity,
+  phi0,
+  lambda,
+  initialTension,
+) {
+  const lambdaTolerance = 1e-8;
+  if (
+    initialTension >= -EVENT_EPSILON &&
+    lambda >= -lambdaTolerance &&
+    lambda <= 3 + lambdaTolerance
+  ) {
+    const zeroTensionLambda = clamp(lambda, 0, 3);
+    const zeroTensionAngle = Math.acos(-zeroTensionLambda / 3);
+    if (phi0 <= zeroTensionAngle + EVENT_EPSILON) {
+      const angularSpeed = Math.sqrt(
+        Math.max(
+          (gravity / radius) *
+            (zeroTensionLambda + 2 * Math.cos(zeroTensionAngle)),
+          0,
+        ),
+      );
+      return {
+        ...tautState(
+          0,
+          radius,
+          1,
+          gravity,
+          zeroTensionAngle,
+          angularSpeed,
+        ),
+        tension: 0,
+      };
+    }
+  }
+
+  for (let index = 1; index < samples.length; index += 1) {
+    const before = samples[index - 1];
+    const after = samples[index];
+    if (before.phase === "taut" && after.phase === "projectile") {
+      return { ...after, tension: 0 };
+    }
+  }
+
+  return null;
 }
 
 function createStringModel(options = {}) {
@@ -620,6 +669,14 @@ function createStringModel(options = {}) {
       ? "looping"
       : "oscillation";
   const firstMaximumState = findFirstMaximumState(samples);
+  const firstZeroTensionState = findFirstZeroTensionState(
+    samples,
+    radius,
+    gravity,
+    phi0,
+    lambda,
+    initialTension,
+  );
 
   return {
     radius,
@@ -632,6 +689,7 @@ function createStringModel(options = {}) {
     outcome,
     detachmentCount,
     reattachmentCount,
+    firstZeroTensionState,
     firstMaximumState,
     maximumHeight: firstMaximumState.y + radius,
     samples,
@@ -688,6 +746,7 @@ function createRodModel() {
     outcome,
     detachmentCount: 0,
     reattachmentCount: 0,
+    firstZeroTensionState: null,
     firstMaximumState,
     maximumHeight: firstMaximumState.y + radius,
     samples,
@@ -732,6 +791,7 @@ function createCircularGuideModel() {
       exitDirection: null,
       detachmentCount: 0,
       reattachmentCount: 0,
+      firstZeroTensionState: null,
       firstMaximumState: samples[0],
       maximumHeight: 0,
       samples,
@@ -853,6 +913,7 @@ function createCircularGuideModel() {
     exitDirection,
     detachmentCount,
     reattachmentCount,
+    firstZeroTensionState: null,
     firstMaximumState,
     maximumHeight: firstMaximumState.y + radius,
     samples,
@@ -1089,11 +1150,13 @@ function renderHeightGeometry(
   stringLength,
   bodyX,
   bodyY,
+  maximumPointY,
+  maximumHeight,
   inverseScale,
   isVisible,
 ) {
   if (!isVisible) {
-    [zeroHeightLabel, heightLabel].forEach((label) =>
+    [zeroHeightLabel, heightLabel, maximumHeightLabel].forEach((label) =>
       setElementVisible(label, false),
     );
     return;
@@ -1105,6 +1168,7 @@ function renderHeightGeometry(
   const capHalfWidth = 7 * inverseScale;
   const height = (baselineY - bodyY) / PIXELS_PER_METER;
   const hasHeight = Math.abs(height) > 1e-6;
+  const hasMaximumHeight = maximumHeight > 1e-6;
 
   setSvgLine(
     zeroHeightReference,
@@ -1124,6 +1188,19 @@ function renderHeightGeometry(
     line.style.strokeWidth = `${0.9 * inverseScale}px`;
     line.style.strokeDasharray = `${6 * inverseScale} ${6 * inverseScale}`;
   });
+  setElementVisible(maximumHeightReference, hasMaximumHeight);
+  if (hasMaximumHeight) {
+    setSvgLine(
+      maximumHeightReference,
+      horizontalStartX,
+      maximumPointY,
+      dimensionX,
+      maximumPointY,
+    );
+    maximumHeightReference.style.strokeWidth = `${0.85 * inverseScale}px`;
+    maximumHeightReference.style.strokeDasharray =
+      `${5 * inverseScale} ${6 * inverseScale}`;
+  }
 
   setSvgLine(heightDimension, dimensionX, baselineY, dimensionX, bodyY);
   setSvgLine(
@@ -1161,6 +1238,17 @@ function renderHeightGeometry(
       dimensionX + 13 * inverseScale,
       (baselineY + bodyY) / 2,
       `h=${decimal(height, 1)}\\,\\mathrm{m}`,
+      inverseScale,
+      `translate(0, -50%) scale(${inverseScale})`,
+    );
+  }
+  setElementVisible(maximumHeightLabel, hasMaximumHeight);
+  if (hasMaximumHeight) {
+    positionDiagramLabel(
+      maximumHeightLabel,
+      dimensionX + 13 * inverseScale,
+      maximumPointY,
+      `h_{\\max}=${decimal(maximumHeight, 1)}\\,\\mathrm{m}`,
       inverseScale,
       `translate(0, -50%) scale(${inverseScale})`,
     );
@@ -1249,14 +1337,17 @@ function renderGeometryPoint(
   inverseScale,
   isVisible,
   tangentOffset = 0,
+  pointRadius = 4,
 ) {
-  [point, label].forEach((element) => setElementVisible(element, isVisible));
+  setElementVisible(point, isVisible);
+  if (label) setElementVisible(label, isVisible);
   if (!isVisible) return;
 
   point.setAttribute("cx", pointX);
   point.setAttribute("cy", pointY);
-  point.setAttribute("r", 4 * inverseScale);
+  point.setAttribute("r", pointRadius * inverseScale);
   point.style.strokeWidth = `${inverseScale}px`;
+  if (!label) return;
   const radialX = pointX - ORIGIN_X;
   const radialY = pointY - ORIGIN_Y;
   const radialLength = Math.max(Math.hypot(radialX, radialY), EVENT_EPSILON);
@@ -1710,6 +1801,12 @@ function renderSimulation() {
     ORIGIN_X + radius * PIXELS_PER_METER * Math.sin(model.phi0);
   const initialBodyY =
     ORIGIN_Y + radius * PIXELS_PER_METER * Math.cos(model.phi0);
+  const firstZeroTensionPointX = model.firstZeroTensionState
+    ? ORIGIN_X + model.firstZeroTensionState.x * PIXELS_PER_METER
+    : 0;
+  const firstZeroTensionPointY = model.firstZeroTensionState
+    ? ORIGIN_Y - model.firstZeroTensionState.y * PIXELS_PER_METER
+    : 0;
   const maximumPointX =
     ORIGIN_X + model.firstMaximumState.x * PIXELS_PER_METER;
   const maximumPointY =
@@ -1835,6 +1932,8 @@ function renderSimulation() {
     stringLength,
     bodyX,
     bodyY,
+    maximumPointY,
+    model.maximumHeight,
     inverseScale,
     showsGeometricFeatures,
   );
@@ -1873,22 +1972,23 @@ function renderSimulation() {
   renderGeometryPoint(
     pointB,
     pointBLabel,
-    initialBodyX,
-    initialBodyY,
+    firstZeroTensionPointX,
+    firstZeroTensionPointY,
     "B",
     inverseScale,
-    showsGeometricFeatures && model.phi0 > EVENT_EPSILON,
+    showsGeometricFeatures && isString && Boolean(model.firstZeroTensionState),
     8,
   );
   renderGeometryPoint(
-    pointGamma,
-    pointGammaLabel,
+    pointHMax,
+    null,
     maximumPointX,
     maximumPointY,
-    "H_{\\max}",
+    "",
     inverseScale,
-    showsGeometricFeatures,
-    -8,
+    showsGeometricFeatures && model.maximumHeight > 1e-6,
+    0,
+    2.5,
   );
   renderWeightVector(
     bodyX,

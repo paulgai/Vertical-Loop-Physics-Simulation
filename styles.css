@@ -15,6 +15,8 @@
   --vector-weight: #8d3f17;
   --vector-tension: #d62828;
   --geometry-point: #e79a16;
+  --point-b: #199447;
+  --maximum-height: #2f6fed;
   --motion-trail: #199447;
   --guide-track-dark: #485362;
   --guide-track-surface-back: #66717e;
@@ -46,6 +48,8 @@
   --vector-weight: #ffd0aa;
   --vector-tension: #ff6b6b;
   --geometry-point: #f2ad39;
+  --point-b: #62dc8e;
+  --maximum-height: #78a5ff;
   --motion-trail: #62dc8e;
   --guide-track-dark: #566273;
   --guide-track-surface-back: #687482;
@@ -472,6 +476,10 @@ body.settings-panel-collapsed.results-panel-collapsed .simulation-area {
 }
 
 .body-height-reference { opacity: 0.72; }
+.maximum-height-reference {
+  stroke: color-mix(in srgb, var(--maximum-height) 68%, transparent);
+  opacity: 0.72;
+}
 .geometry-dimension,
 .geometry-dimension-cap { stroke: color-mix(in srgb, var(--label-ink) 72%, transparent); }
 
@@ -488,6 +496,17 @@ body.settings-panel-collapsed.results-panel-collapsed .simulation-area {
   fill: var(--geometry-point);
   stroke: var(--label-ink);
   filter: drop-shadow(0 0 3px color-mix(in srgb, var(--geometry-point) 45%, transparent));
+}
+
+.point-b {
+  fill: var(--point-b);
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--point-b) 45%, transparent));
+}
+
+.maximum-height-point {
+  fill: var(--maximum-height);
+  stroke: color-mix(in srgb, var(--maximum-height) 72%, var(--label-ink));
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--maximum-height) 38%, transparent));
 }
 
 .simulation-string {
@@ -592,6 +611,8 @@ body.settings-panel-collapsed.results-panel-collapsed .simulation-area {
 }
 
 .geometry-point-label { font-size: 15px; font-weight: 700; }
+.point-b-label { color: var(--point-b); }
+.maximum-height-label { color: var(--maximum-height); }
 
 .velocity-vector {
   stroke-width: 2;
