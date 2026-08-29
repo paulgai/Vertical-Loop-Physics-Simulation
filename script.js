@@ -89,6 +89,8 @@ const resultTime = document.querySelector("#result-time");
 const resultAngle = document.querySelector("#result-angle");
 const resultHeight = document.querySelector("#result-h");
 const resultMaximumHeight = document.querySelector("#result-h-max");
+const resultZeroTensionHeight = document.querySelector("#result-y-b");
+const resultZeroTensionHeightElements = document.querySelectorAll(".result-y-b");
 const resultSpeed = document.querySelector("#result-speed");
 const resultTensionSymbol = document.querySelector("#result-symbol-tension");
 const resultTension = document.querySelector("#result-tension");
@@ -235,6 +237,7 @@ function renderStaticLatex() {
     ["#result-symbol-h", "h"],
     ["#result-symbol-angle", "\\varphi"],
     ["#result-symbol-h-max", "h_{\\max}"],
+    ["#result-symbol-y-b", "y_B"],
     ["#result-symbol-tension", "T"],
     ["#result-symbol-weight", "W"],
     ["#result-symbol-weight-y", "W_y"],
@@ -1601,6 +1604,20 @@ function renderResults(model, state, isCircularGuide, isRod) {
     "\\mathrm{m}",
     "m",
   );
+  const hasZeroTensionHeight = Boolean(model.firstZeroTensionState);
+  resultZeroTensionHeightElements.forEach((element) =>
+    setElementVisible(element, hasZeroTensionHeight),
+  );
+  if (hasZeroTensionHeight) {
+    renderMeasurement(
+      resultZeroTensionHeight,
+      model.firstZeroTensionState.y + model.radius,
+      true,
+      2,
+      "\\mathrm{m}",
+      "m",
+    );
+  }
   renderMeasurement(
     resultSpeed,
     speed,
